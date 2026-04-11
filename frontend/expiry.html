@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expiry Alerts - MedStore</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <main>
+            <h1>Expiry Alerts</h1>
+            <p style="margin-bottom: 20px; color: #666;">Medicines expiring within the next 30 days.</p>
+            <table>
+                <thead><tr><th>Medicine</th><th>Batch No</th><th>Expiry Date</th><th>Status</th></tr></thead>
+                <tbody id="expiry-body"></tbody>
+            </table>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.href = 'login.html'; return; }
+            const options = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } };
+            if (body) options.body = JSON.stringify(body);
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, options);
+                if (res.status === 401 || res.status === 403) { localStorage.removeItem('token'); window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                if (!res.ok) { alert(data.message || 'Error'); return null; }
+                return data;
+            } catch (err) { alert('Server connection failed'); return null; }
+        }
+
+        function loadSidebar() {
+            fetch('sidebar.html').then(res => res.text()).then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+                document.getElementById('nav-expiry').classList.add('active');
+            });
+        }
+
+        function logout() { localStorage.removeItem('token'); window.location.href = 'login.html'; }
+
+        async function fetchAlerts() {
+            const data = await apiCall('/dashboard/alerts');
+            if (data) {
+                const body = document.getElementById('expiry-body');
+                body.innerHTML = data.map(m => {
+                    const status = m.is_expired ? 'EXPIRED' : 'Expiring Soon';
+                    const color = m.is_expired ? 'var(--danger)' : 'var(--warning)';
+                    return `<tr><td><strong>${m.name}</strong></td><td><code>${m.batch_no}</code></td><td>${new Date(m.expiry_date).toLocaleDateString()}</td><td><span style="color: ${color}; font-weight: bold;">${status}</span></td></tr>`;
+                }).join('');
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => { loadSidebar(); fetchAlerts(); });
+    </script>
+</body>
+</html>

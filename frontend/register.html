@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - MedStore</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .login-card {
+            background: white;
+            padding: 50px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.6s ease-out;
+        }
+        .login-card h2 { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 10px; }
+        .login-card p { text-align: center; color: var(--text-muted); margin-bottom: 30px; }
+        .logo-circle {
+            width: 70px;
+            height: 70px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo-circle">MS</div>
+        <h2>Admin Signup</h2>
+        <p>Create your secure medical store account</p>
+        
+        <div id="status-msg"></div>
+
+        <form id="reg-form">
+            <label>Email Address</label>
+            <input type="email" id="email" placeholder="admin@medstore.com" required>
+            
+            <label>Password</label>
+            <input type="password" id="password" placeholder="••••••••" required minlength="6">
+            
+            <label>Confirm Password</label>
+            <input type="password" id="confirm-password" placeholder="••••••••" required minlength="6">
+            
+            <button type="submit" class="btn-info" style="width: 100%; padding: 15px; margin-top: 10px;">Create Account</button>
+        </form>
+        
+        <div style="text-align: center; margin-top: 25px; color: var(--text-muted);">
+            Already have an account? <a href="login.html" style="color: var(--primary); font-weight: 600; text-decoration: none;">Login Here</a>
+        </div>
+    </div>
+
+    <script>
+        function showMsg(m, isErr = false) {
+            const el = document.getElementById('status-msg');
+            el.innerText = m;
+            el.style.display = 'block';
+            el.style.backgroundColor = isErr ? '#fee2e2' : '#dcfce7';
+            el.style.color = isErr ? '#991b1b' : '#166534';
+            setTimeout(() => { if(!isErr) el.style.display = 'none'; }, 3000);
+        }
+
+        document.getElementById('reg-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm-password').value;
+
+            if (password !== confirm) {
+                showMsg('Passwords do not match!', true);
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showMsg('Registration successful! Redirecting to login...');
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                } else {
+                    showMsg(data.message || 'Error', true);
+                }
+            } catch (err) {
+                showMsg('Server connection failed', true);
+            }
+        });
+    </script>
+</body>
+</html>

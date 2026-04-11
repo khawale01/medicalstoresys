@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - MedStore</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <main>
+            <h1>Account Settings</h1>
+            <div class="form-box" style="max-width: 400px; margin-top: 20px;">
+                <h3>Change Password</h3>
+                <div id="msg" style="margin-top: 10px; font-weight: bold; display: none;"></div>
+                <form id="settings-form" style="margin-top: 15px;">
+                    <label>Current Password</label><input type="password" id="current_pw" required>
+                    <label>New Password</label><input type="password" id="new_pw" required minlength="6">
+                    <label>Confirm New Password</label><input type="password" id="confirm_pw" required>
+                    <button type="submit" class="btn-success">Update Password</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.href = 'login.html'; return; }
+            const options = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } };
+            if (body) options.body = JSON.stringify(body);
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, options);
+                if (res.status === 401 || res.status === 403) { localStorage.removeItem('token'); window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                if (!res.ok) { alert(data.message || 'Error'); return null; }
+                return data;
+            } catch (err) { alert('Server connection failed'); return null; }
+        }
+
+        function loadSidebar() {
+            fetch('sidebar.html').then(res => res.text()).then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+                document.getElementById('nav-settings').classList.add('active');
+            });
+        }
+
+        function logout() { localStorage.removeItem('token'); window.location.href = 'login.html'; }
+
+        document.getElementById('settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentPassword = document.getElementById('current_pw').value;
+            const newPassword = document.getElementById('new_pw').value;
+            const confirm = document.getElementById('confirm_pw').value;
+            const msgDiv = document.getElementById('msg');
+            if (newPassword !== confirm) { msgDiv.innerText = 'New passwords do not match!'; msgDiv.style.color = 'var(--danger)'; msgDiv.style.display = 'block'; return; }
+            const res = await apiCall('/auth/change-password', 'POST', { currentPassword, newPassword });
+            if (res) { msgDiv.innerText = res.message; msgDiv.style.color = 'var(--success)'; msgDiv.style.display = 'block'; document.getElementById('settings-form').reset(); }
+        });
+
+        document.addEventListener('DOMContentLoaded', loadSidebar);
+    </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicines - MedStore</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <main>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1>Medicine Inventory</h1>
+                <button onclick="toggleForm()" class="btn-info">+ Add Medicine</button>
+            </div>
+            <div id="status-msg" style="padding: 10px; border-radius: 8px; display: none; margin-bottom: 20px;"></div>
+
+            <div id="form-container" class="form-box" style="display: none;">
+                <h3 id="form-title">Add New Medicine</h3>
+                <form id="medicine-form">
+                    <input type="hidden" id="med-id">
+                    <input type="text" id="name" placeholder="Medicine Name" required>
+                    <input type="number" id="price" placeholder="Price" step="0.01" required>
+                    <input type="number" id="quantity" placeholder="Quantity" required>
+                    <input type="date" id="expiry_date" required>
+                    <input type="text" id="batch_no" placeholder="Batch No" required>
+                    <input type="text" id="company" placeholder="Company Name" required>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn-success">Save Medicine</button>
+                        <button type="button" onclick="toggleForm()" class="btn-danger">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="form-box" style="padding: 10px;">
+                <input type="text" id="search" placeholder="Search medicines..." onkeyup="searchMeds()" style="margin-bottom: 0;">
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th><th>Price</th><th>Qty</th><th>Expiry</th><th>Batch</th><th>Company</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="meds-table-body"></tbody>
+            </table>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        let medicines = [];
+
+        function showMsg(m, isErr = false) {
+            const el = document.getElementById('status-msg');
+            el.innerText = m;
+            el.style.display = 'block';
+            el.style.backgroundColor = isErr ? '#fee2e2' : '#dcfce7';
+            el.style.color = isErr ? '#991b1b' : '#166534';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.href = 'login.html'; return; }
+            const options = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } };
+            if (body) options.body = JSON.stringify(body);
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, options);
+                if (res.status === 401 || res.status === 403) { localStorage.removeItem('token'); window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                if (!res.ok) { showMsg(data.message || 'Error', true); return null; }
+                return data;
+            } catch (err) { showMsg('Server connection failed', true); return null; }
+        }
+
+        function loadSidebar() {
+            fetch('sidebar.html').then(res => res.text()).then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+                const path = window.location.pathname.split('/').pop() || 'dashboard.html';
+                const link = document.getElementById('nav-' + path.split('.')[0]);
+                if (link) link.classList.add('active');
+            });
+        }
+
+        function logout() { localStorage.removeItem('token'); window.location.href = 'login.html'; }
+
+        async function fetchMedicines() {
+            medicines = await apiCall('/medicines');
+            if (medicines) renderMedicines(medicines);
+        }
+
+        function renderMedicines(data) {
+            const body = document.getElementById('meds-table-body');
+            body.innerHTML = data.map(m => `
+                <tr>
+                    <td>${m.name}</td><td>₹${m.price}</td><td>${m.quantity}</td>
+                    <td>${new Date(m.expiry_date).toLocaleDateString()}</td><td>${m.batch_no}</td><td>${m.company}</td>
+                    <td>
+                        <button onclick="editMedicine(${m.id})" class="btn-success" style="padding: 5px 10px;">Edit</button>
+                        <button onclick="deleteMedicine(${m.id})" class="btn-danger" style="padding: 5px 10px;">Del</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function searchMeds() {
+            const term = document.getElementById('search').value.toLowerCase();
+            const filtered = medicines.filter(m => m.name.toLowerCase().includes(term) || m.company.toLowerCase().includes(term));
+            renderMedicines(filtered);
+        }
+
+        function toggleForm() {
+            const form = document.getElementById('form-container');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            if (form.style.display === 'none') {
+                document.getElementById('medicine-form').reset();
+                document.getElementById('med-id').value = '';
+                document.getElementById('form-title').innerText = 'Add New Medicine';
+            }
+        }
+
+        document.getElementById('medicine-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('med-id').value;
+            const body = {
+                name: document.getElementById('name').value,
+                price: document.getElementById('price').value,
+                quantity: document.getElementById('quantity').value,
+                expiry_date: document.getElementById('expiry_date').value,
+                batch_no: document.getElementById('batch_no').value,
+                company: document.getElementById('company').value
+            };
+            const res = await apiCall(id ? `/medicines/${id}` : '/medicines', id ? 'PUT' : 'POST', body);
+            if (res) { 
+                showMsg('Medicine saved successfully');
+                toggleForm(); 
+                fetchMedicines(); 
+            }
+        });
+
+        async function editMedicine(id) {
+            const m = medicines.find(med => med.id === id);
+            document.getElementById('med-id').value = m.id;
+            document.getElementById('name').value = m.name;
+            document.getElementById('price').value = m.price;
+            document.getElementById('quantity').value = m.quantity;
+            document.getElementById('expiry_date').value = new Date(m.expiry_date).toISOString().split('T')[0];
+            document.getElementById('batch_no').value = m.batch_no;
+            document.getElementById('company').value = m.company;
+            document.getElementById('form-title').innerText = 'Edit Medicine';
+            document.getElementById('form-container').style.display = 'block';
+        }
+
+        async function deleteMedicine(id) {
+            if (confirm('Are you sure?')) {
+                const res = await apiCall(`/medicines/${id}`, 'DELETE');
+                if (res) fetchMedicines();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { loadSidebar(); fetchMedicines(); });
+    </script>
+</body>
+</html>

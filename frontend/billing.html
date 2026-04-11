@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing - MedStore</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        @media print {
+            .app-container > *:not(main), 
+            .card-grid > .form-box:first-child,
+            h1, h3, button { display: none !important; }
+            
+            main { margin: 0; padding: 0; }
+            .card-grid { display: block !important; }
+            .form-box { border: none !important; box-shadow: none !important; }
+            
+            .receipt-header { display: block !important; text-align: center; margin-bottom: 20px; }
+            .receipt-footer { display: block !important; margin-top: 30px; text-align: right; }
+        }
+        .receipt-header, .receipt-footer { display: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <main>
+            <h1>Generate Bill</h1>
+            <div id="status-msg" style="padding: 10px; margin-bottom: 20px; border-radius: 4px; display: none;"></div>
+            <div class="card-grid" style="grid-template-columns: 1fr 350px;">
+                <div class="form-box">
+                    <h3>Select Medicines</h3>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <select id="med-select" style="flex-grow: 1; margin-bottom: 0;">
+                            <option value="">Choose a medicine...</option>
+                        </select>
+                        <input type="number" id="bill-qty" placeholder="Qty" value="1" style="width: 80px; margin-bottom: 0;">
+                        <button onclick="addToBill()" class="btn-success">Add</button>
+                    </div>
+                    <table style="margin-top: 25px;">
+                        <thead><tr><th>Medicine</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead>
+                        <tbody id="bill-body"></tbody>
+                    </table>
+                </div>
+                <div class="form-box" style="align-self: start;">
+                    <div class="receipt-header">
+                        <h2>MEDICAL STORE RECEIPT</h2>
+                        <p>Address: Main Street, New Delhi</p>
+                        <p>Date: <span id="print-date"></span></p>
+                    </div>
+                    <h3>Order Summary</h3>
+                    <div style="margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">Subtotal: <span>₹<span id="subtotal">0.00</span></span></div>
+                        <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem;">Total: <span>₹<span id="grand-total">0.00</span></span></div>
+                        <button onclick="saveBill()" id="save-btn" class="btn-success" style="width: 100%; margin-top: 25px;" disabled>Complete Sale</button>
+                        <button onclick="window.print()" id="print-btn" class="btn-warning" style="width: 100%; margin-top: 10px; display: none;">Print Receipt</button>
+                    </div>
+                    <div class="receipt-footer">
+                        <p>___________________</p>
+                        <p>Authorized Signatory</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        let allMedicines = [];
+        let billItems = [];
+
+        function showMsg(m, isErr = false) {
+            const el = document.getElementById('status-msg');
+            el.innerText = m;
+            el.style.display = 'block';
+            el.style.backgroundColor = isErr ? '#fee2e2' : '#dcfce7';
+            el.style.color = isErr ? '#991b1b' : '#166534';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.href = 'login.html'; return; }
+            const options = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } };
+            if (body) options.body = JSON.stringify(body);
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, options);
+                if (res.status === 401 || res.status === 403) { localStorage.removeItem('token'); window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                if (!res.ok) { showMsg(data.message || 'Error', true); return null; }
+                return data;
+            } catch (err) { showMsg('Server connection failed', true); return null; }
+        }
+
+        function loadSidebar() {
+            fetch('sidebar.html').then(res => res.text()).then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+                const path = window.location.pathname.split('/').pop() || 'dashboard.html';
+                document.getElementById('nav-billing').classList.add('active');
+            });
+        }
+
+        function logout() { localStorage.removeItem('token'); window.location.href = 'login.html'; }
+
+        async function init() {
+            allMedicines = await apiCall('/medicines');
+            if (!allMedicines) return;
+            const select = document.getElementById('med-select');
+            const validMeds = allMedicines.filter(m => m.quantity > 0 && new Date(m.expiry_date) > new Date());
+            validMeds.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = `${m.name} (Stock: ${m.quantity})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function addToBill() {
+            const medId = parseInt(document.getElementById('med-select').value);
+            const qty = parseInt(document.getElementById('bill-qty').value);
+            if (!medId || qty <= 0) return;
+            const medicine = allMedicines.find(m => m.id === medId);
+            if (qty > medicine.quantity) { showMsg('Insufficient stock!', true); return; }
+            const existing = billItems.find(item => item.medicine_id === medId);
+            if (existing) {
+                if (existing.quantity + qty > medicine.quantity) { showMsg('Cannot exceed available stock!', true); return; }
+                existing.quantity += qty;
+            } else {
+                billItems.push({ medicine_id: medId, name: medicine.name, price: medicine.price, quantity: qty });
+            }
+            renderBill();
+        }
+
+        function renderBill() {
+            const body = document.getElementById('bill-body');
+            let total = 0;
+            body.innerHTML = billItems.map((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                return `<tr><td>${item.name}</td><td>₹${item.price}</td><td>${item.quantity}</td><td>₹${itemTotal.toFixed(2)}</td><td><button onclick="removeItem(${index})" class="btn-danger" style="padding: 2px 8px;">×</button></td></tr>`;
+            }).join('');
+            document.getElementById('subtotal').textContent = total.toFixed(2);
+            document.getElementById('grand-total').textContent = total.toFixed(2);
+            document.getElementById('save-btn').disabled = billItems.length === 0;
+        }
+
+        function removeItem(index) { billItems.splice(index, 1); renderBill(); }
+
+        async function saveBill() {
+            document.getElementById('save-btn').disabled = true;
+            document.getElementById('print-date').innerText = new Date().toLocaleString();
+            const res = await apiCall('/sales', 'POST', { items: billItems });
+            if (res) { 
+                showMsg('Sale completed successfully!'); 
+                document.getElementById('save-btn').style.display = 'none';
+                document.getElementById('print-btn').style.display = 'block';
+                init(); 
+            } else {
+                document.getElementById('save-btn').disabled = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { loadSidebar(); init(); });
+    </script>
+</body>
+</html>

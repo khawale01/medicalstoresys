@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales - MedStore</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <main>
+            <h1>Sales History</h1>
+            <table>
+                <thead><tr><th>Order ID</th><th>Date & Time</th><th>Total Amount</th><th>Status</th></tr></thead>
+                <tbody id="sales-body"></tbody>
+            </table>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.href = 'login.html'; return; }
+            const options = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } };
+            if (body) options.body = JSON.stringify(body);
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, options);
+                if (res.status === 401 || res.status === 403) { localStorage.removeItem('token'); window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                if (!res.ok) { alert(data.message || 'Error'); return null; }
+                return data;
+            } catch (err) { alert('Server connection failed'); return null; }
+        }
+
+        function loadSidebar() {
+            fetch('sidebar.html').then(res => res.text()).then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+                document.getElementById('nav-sales').classList.add('active');
+            });
+        }
+
+        function logout() { localStorage.removeItem('token'); window.location.href = 'login.html'; }
+
+        async function fetchSales() {
+            const data = await apiCall('/sales');
+            if (data) {
+                const body = document.getElementById('sales-body');
+                body.innerHTML = data.map(s => `<tr><td>#${s.id}</td><td>${new Date(s.date).toLocaleString()}</td><td>₹${Number(s.total_amount).toFixed(2)}</td><td><span style="color: var(--success); font-weight: bold;">Completed</span></td></tr>`).join('');
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => { loadSidebar(); fetchSales(); });
+    </script>
+</body>
+</html>

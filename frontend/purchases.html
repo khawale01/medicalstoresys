@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Procurement - MedStore</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <main>
+            <h1>📦 Stock Procurement (Restock)</h1>
+            <div id="status-msg"></div>
+            
+            <div class="card-grid" style="grid-template-columns: 1fr 2fr;">
+                <div class="form-box">
+                    <h3>Record New Stock</h3>
+                    <form id="purchase-form" style="margin-top: 20px;">
+                        <label>Medicine</label>
+                        <select id="med-select" required>
+                            <option value="">Select medicine...</option>
+                        </select>
+                        
+                        <label>Quantity Purchased</label>
+                        <input type="number" id="qty" placeholder="Example: 100" required min="1">
+                        
+                        <label>Purchase Price (per unit)</label>
+                        <input type="number" id="price" step="0.01" placeholder="₹0.00" required>
+                        
+                        <label>Supplier / Company</label>
+                        <input type="text" id="supplier" placeholder="Example: GSK" required>
+                        
+                        <button type="submit" class="btn-success" style="width: 100%; margin-top: 10px;">Record Purchase</button>
+                    </form>
+                </div>
+                
+                <div class="form-box">
+                    <h3>Recent Stock Arrivals</h3>
+                    <table style="margin-top: 20px;">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Medicine</th>
+                                <th>Qty</th>
+                                <th>Cost</th>
+                                <th>Supplier</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purchase-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        let medicines = [];
+
+        function showMsg(m, isErr = false) {
+            const el = document.getElementById('status-msg');
+            el.innerText = m;
+            el.style.display = 'block';
+            el.style.backgroundColor = isErr ? '#fee2e2' : '#dcfce7';
+            el.style.color = isErr ? '#991b1b' : '#166534';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.href = 'login.html'; return; }
+            const options = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } };
+            if (body) options.body = JSON.stringify(body);
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, options);
+                const data = await res.json();
+                if (!res.ok) { showMsg(data.message || 'Error', true); return null; }
+                return data;
+            } catch (err) { showMsg('Server connection failed', true); return null; }
+        }
+
+        function loadSidebar() {
+            fetch('sidebar.html').then(res => res.text()).then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+            });
+        }
+
+        async function init() {
+            medicines = await apiCall('/medicines');
+            if (medicines) {
+                const select = document.getElementById('med-select');
+                select.innerHTML = '<option value="">Select medicine...</option>' + 
+                    medicines.map(m => `<option value="${m.id}">${m.name} (Cur: ${m.quantity})</option>`).join('');
+            }
+            fetchPurchases();
+        }
+
+        async function fetchPurchases() {
+            const data = await apiCall('/purchases');
+            if (data) {
+                const body = document.getElementById('purchase-body');
+                body.innerHTML = data.map(p => `
+                    <tr>
+                        <td>${new Date(p.purchase_date).toLocaleDateString()}</td>
+                        <td><strong>${p.medicine_name}</strong></td>
+                        <td>${p.quantity}</td>
+                        <td>₹${Number(p.purchase_price).toFixed(2)}</td>
+                        <td><span class="btn-info" style="padding: 2px 8px; font-size: 0.75rem;">${p.supplier}</span></td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        document.getElementById('purchase-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                medicine_id: document.getElementById('med-select').value,
+                quantity: document.getElementById('qty').value,
+                purchase_price: document.getElementById('price').value,
+                supplier: document.getElementById('supplier').value
+            };
+            const res = await apiCall('/purchases', 'POST', body);
+            if (res) {
+                showMsg('Stock updated successfully!');
+                document.getElementById('purchase-form').reset();
+                init();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => { loadSidebar(); init(); });
+    </script>
+</body>
+</html>

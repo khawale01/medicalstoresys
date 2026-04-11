@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MedStore</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <main>
+            <div class="welcome-banner">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 id="welcome-text">Welcome back, Admin!</h2>
+                        <p id="system-time">Initializing system time...</p>
+                    </div>
+                    <div style="text-align: right; opacity: 0.8;">
+                        <div id="live-date" style="font-size: 1.2rem; font-weight: 600;"></div>
+                        <div id="live-clock" style="font-size: 2.5rem; font-weight: 800; letter-spacing: 2px;">00:00:00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Total Medicines</h3>
+                    <div class="value" id="total-meds">0</div>
+                </div>
+                <div class="card" style="border-left: 5px solid var(--warning);">
+                    <h3>Low Stock Alerts</h3>
+                    <div class="value" id="low-stock" style="color: var(--warning);">0</div>
+                </div>
+                <div class="card" style="border-left: 5px solid var(--danger);">
+                    <h3>Expiring Soon</h3>
+                    <div class="value" id="expiring-soon" style="color: var(--danger);">0</div>
+                </div>
+                <div class="card" style="border-left: 5px solid var(--success);">
+                    <h3>Today's Sales</h3>
+                    <div class="value" id="today-sales" style="color: var(--success);">₹0.00</div>
+                </div>
+                <div class="card" style="border-left: 5px solid var(--info);">
+                    <h3>🏆 Big Seller</h3>
+                    <div class="value" id="big-seller" style="font-size: 1.5rem; color: var(--info);">N/A</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+                <button onclick="window.location.href='billing.html'" class="btn-info" style="flex: 1; padding: 30px; border-radius: 20px;">
+                    <span style="font-size: 1.5rem;">Create New Bill</span>
+                </button>
+                <button onclick="window.location.href='medicines.html'" class="btn-success" style="flex: 1; padding: 30px; border-radius: 20px;">
+                    <span style="font-size: 1.5rem;">Manage Inventory</span>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        
+        // Live Clock Feature
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString();
+            
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('live-date').innerText = now.toLocaleDateString(undefined, options);
+            
+            const hours = now.getHours();
+            let greeting = "Good Evening";
+            if (hours < 12) greeting = "Good Morning";
+            else if (hours < 18) greeting = "Good Afternoon";
+            
+            const email = localStorage.getItem('email') || 'Admin';
+            document.getElementById('welcome-text').innerText = `${greeting}, ${email.split('@')[0]}!`;
+            document.getElementById('system-time').innerText = "System is online and secure.";
+        }
+        setInterval(updateClock, 1000);
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.href = 'login.html'; return; }
+            const options = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } };
+            if (body) options.body = JSON.stringify(body);
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, options);
+                if (res.status === 401 || res.status === 403) { localStorage.removeItem('token'); window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                if (!res.ok) return null;
+                return data;
+            } catch (err) { return null; }
+        }
+
+        function loadSidebar() {
+            fetch('sidebar.html').then(res => res.text()).then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+                document.getElementById('nav-dashboard').classList.add('active');
+            });
+        }
+
+        async function fetchSummary() {
+            const data = await apiCall('/dashboard/summary');
+            if (data) {
+                document.getElementById('total-meds').innerText = data.totalMedicines;
+                document.getElementById('low-stock').innerText = data.lowStockCount;
+                document.getElementById('expiring-soon').innerText = data.expiringSoonCount;
+                document.getElementById('today-sales').innerText = `₹${Number(data.todaysSales).toFixed(2)}`;
+                document.getElementById('big-seller').innerText = data.bigSeller;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { 
+            loadSidebar(); 
+            fetchSummary(); 
+            updateClock(); 
+        });
+    </script>
+</body>
+</html>

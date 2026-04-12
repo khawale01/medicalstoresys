@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Procurement - MedStore</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <div class="app-container">
         <div id="sidebar-container"></div>
         <main>
             <h1>📦 Stock Procurement (Restock)</h1>
             <div id="status-msg"></div>
-            
+
             <div class="card-grid" style="grid-template-columns: 1fr 2fr;">
                 <div class="form-box">
                     <h3>Record New Stock</h3>
@@ -21,20 +23,21 @@
                         <select id="med-select" required>
                             <option value="">Select medicine...</option>
                         </select>
-                        
+
                         <label>Quantity Purchased</label>
                         <input type="number" id="qty" placeholder="Example: 100" required min="1">
-                        
+
                         <label>Purchase Price (per unit)</label>
                         <input type="number" id="price" step="0.01" placeholder="₹0.00" required>
-                        
+
                         <label>Supplier / Company</label>
                         <input type="text" id="supplier" placeholder="Example: GSK" required>
-                        
-                        <button type="submit" class="btn-success" style="width: 100%; margin-top: 10px;">Record Purchase</button>
+
+                        <button type="submit" class="btn-success" style="width: 100%; margin-top: 10px;">Record
+                            Purchase</button>
                     </form>
                 </div>
-                
+
                 <div class="form-box">
                     <h3>Recent Stock Arrivals</h3>
                     <table style="margin-top: 20px;">
@@ -90,7 +93,7 @@
             medicines = await apiCall('/medicines');
             if (medicines) {
                 const select = document.getElementById('med-select');
-                select.innerHTML = '<option value="">Select medicine...</option>' + 
+                select.innerHTML = '<option value="">Select medicine...</option>' +
                     medicines.map(m => `<option value="${m.id}">${m.name} (Cur: ${m.quantity})</option>`).join('');
             }
             fetchPurchases();
@@ -131,4 +134,5 @@
         document.addEventListener('DOMContentLoaded', () => { loadSidebar(); init(); });
     </script>
 </body>
+
 </html>

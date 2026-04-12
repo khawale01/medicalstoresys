@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medicines - MedStore</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <div class="app-container">
         <div id="sidebar-container"></div>
@@ -34,13 +36,20 @@
             </div>
 
             <div class="form-box" style="padding: 10px;">
-                <input type="text" id="search" placeholder="Search medicines..." onkeyup="searchMeds()" style="margin-bottom: 0;">
+                <input type="text" id="search" placeholder="Search medicines..." onkeyup="searchMeds()"
+                    style="margin-bottom: 0;">
             </div>
 
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th><th>Price</th><th>Qty</th><th>Expiry</th><th>Batch</th><th>Company</th><th>Actions</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>Expiry</th>
+                        <th>Batch</th>
+                        <th>Company</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="meds-table-body"></tbody>
@@ -133,10 +142,10 @@
                 company: document.getElementById('company').value
             };
             const res = await apiCall(id ? `/medicines/${id}` : '/medicines', id ? 'PUT' : 'POST', body);
-            if (res) { 
+            if (res) {
                 showMsg('Medicine saved successfully');
-                toggleForm(); 
-                fetchMedicines(); 
+                toggleForm();
+                fetchMedicines();
             }
         });
 
@@ -163,4 +172,5 @@
         document.addEventListener('DOMContentLoaded', () => { loadSidebar(); fetchMedicines(); });
     </script>
 </body>
+
 </html>

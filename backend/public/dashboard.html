@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - MedStore</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <div class="app-container">
         <div id="sidebar-container"></div>
@@ -18,7 +20,8 @@
                     </div>
                     <div style="text-align: right; opacity: 0.8;">
                         <div id="live-date" style="font-size: 1.2rem; font-weight: 600;"></div>
-                        <div id="live-clock" style="font-size: 2.5rem; font-weight: 800; letter-spacing: 2px;">00:00:00</div>
+                        <div id="live-clock" style="font-size: 2.5rem; font-weight: 800; letter-spacing: 2px;">00:00:00
+                        </div>
                     </div>
                 </div>
             </div>
@@ -47,10 +50,12 @@
             </div>
 
             <div style="display: flex; gap: 20px;">
-                <button onclick="window.location.href='billing.html'" class="btn-info" style="flex: 1; padding: 30px; border-radius: 20px;">
+                <button onclick="window.location.href='billing.html'" class="btn-info"
+                    style="flex: 1; padding: 30px; border-radius: 20px;">
                     <span style="font-size: 1.5rem;">Create New Bill</span>
                 </button>
-                <button onclick="window.location.href='medicines.html'" class="btn-success" style="flex: 1; padding: 30px; border-radius: 20px;">
+                <button onclick="window.location.href='medicines.html'" class="btn-success"
+                    style="flex: 1; padding: 30px; border-radius: 20px;">
                     <span style="font-size: 1.5rem;">Manage Inventory</span>
                 </button>
             </div>
@@ -59,20 +64,20 @@
 
     <script>
         const API_URL = '/api';
-        
+
         // Live Clock Feature
         function updateClock() {
             const now = new Date();
             document.getElementById('live-clock').innerText = now.toLocaleTimeString();
-            
+
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('live-date').innerText = now.toLocaleDateString(undefined, options);
-            
+
             const hours = now.getHours();
             let greeting = "Good Evening";
             if (hours < 12) greeting = "Good Morning";
             else if (hours < 18) greeting = "Good Afternoon";
-            
+
             const email = localStorage.getItem('email') || 'Admin';
             document.getElementById('welcome-text').innerText = `${greeting}, ${email.split('@')[0]}!`;
             document.getElementById('system-time').innerText = "System is online and secure.";
@@ -111,11 +116,12 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => { 
-            loadSidebar(); 
-            fetchSummary(); 
-            updateClock(); 
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSidebar();
+            fetchSummary();
+            updateClock();
         });
     </script>
 </body>
+
 </html>

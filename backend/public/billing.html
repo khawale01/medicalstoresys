@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,20 +8,49 @@
     <link rel="stylesheet" href="css/style.css">
     <style>
         @media print {
-            .app-container > *:not(main), 
-            .card-grid > .form-box:first-child,
-            h1, h3, button { display: none !important; }
-            
-            main { margin: 0; padding: 0; }
-            .card-grid { display: block !important; }
-            .form-box { border: none !important; box-shadow: none !important; }
-            
-            .receipt-header { display: block !important; text-align: center; margin-bottom: 20px; }
-            .receipt-footer { display: block !important; margin-top: 30px; text-align: right; }
+
+            .app-container>*:not(main),
+            .card-grid>.form-box:first-child,
+            h1,
+            h3,
+            button {
+                display: none !important;
+            }
+
+            main {
+                margin: 0;
+                padding: 0;
+            }
+
+            .card-grid {
+                display: block !important;
+            }
+
+            .form-box {
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            .receipt-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .receipt-footer {
+                display: block !important;
+                margin-top: 30px;
+                text-align: right;
+            }
         }
-        .receipt-header, .receipt-footer { display: none; }
+
+        .receipt-header,
+        .receipt-footer {
+            display: none;
+        }
     </style>
 </head>
+
 <body>
     <div class="app-container">
         <div id="sidebar-container"></div>
@@ -34,11 +64,20 @@
                         <select id="med-select" style="flex-grow: 1; margin-bottom: 0;">
                             <option value="">Choose a medicine...</option>
                         </select>
-                        <input type="number" id="bill-qty" placeholder="Qty" value="1" style="width: 80px; margin-bottom: 0;">
+                        <input type="number" id="bill-qty" placeholder="Qty" value="1"
+                            style="width: 80px; margin-bottom: 0;">
                         <button onclick="addToBill()" class="btn-success">Add</button>
                     </div>
                     <table style="margin-top: 25px;">
-                        <thead><tr><th>Medicine</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
                         <tbody id="bill-body"></tbody>
                     </table>
                 </div>
@@ -50,11 +89,16 @@
                     </div>
                     <h3>Order Summary</h3>
                     <div style="margin-top: 20px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">Subtotal: <span>₹<span id="subtotal">0.00</span></span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">Subtotal:
+                            <span>₹<span id="subtotal">0.00</span></span></div>
                         <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
-                        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem;">Total: <span>₹<span id="grand-total">0.00</span></span></div>
-                        <button onclick="saveBill()" id="save-btn" class="btn-success" style="width: 100%; margin-top: 25px;" disabled>Complete Sale</button>
-                        <button onclick="window.print()" id="print-btn" class="btn-warning" style="width: 100%; margin-top: 10px; display: none;">Print Receipt</button>
+                        <div
+                            style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem;">
+                            Total: <span>₹<span id="grand-total">0.00</span></span></div>
+                        <button onclick="saveBill()" id="save-btn" class="btn-success"
+                            style="width: 100%; margin-top: 25px;" disabled>Complete Sale</button>
+                        <button onclick="window.print()" id="print-btn" class="btn-warning"
+                            style="width: 100%; margin-top: 10px; display: none;">Print Receipt</button>
                     </div>
                     <div class="receipt-footer">
                         <p>___________________</p>
@@ -151,11 +195,11 @@
             document.getElementById('save-btn').disabled = true;
             document.getElementById('print-date').innerText = new Date().toLocaleString();
             const res = await apiCall('/sales', 'POST', { items: billItems });
-            if (res) { 
-                showMsg('Sale completed successfully!'); 
+            if (res) {
+                showMsg('Sale completed successfully!');
                 document.getElementById('save-btn').style.display = 'none';
                 document.getElementById('print-btn').style.display = 'block';
-                init(); 
+                init();
             } else {
                 document.getElementById('save-btn').disabled = false;
             }
@@ -164,4 +208,5 @@
         document.addEventListener('DOMContentLoaded', () => { loadSidebar(); init(); });
     </script>
 </body>
+
 </html>

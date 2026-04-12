@@ -32,14 +32,29 @@ body {
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+    }
 }
 
 .app-container {
@@ -77,7 +92,8 @@ body {
     border-left: 4px solid transparent;
 }
 
-.sidebar nav a:hover, .sidebar nav a.active {
+.sidebar nav a:hover,
+.sidebar nav a.active {
     background: rgba(255, 255, 255, 0.05);
     color: #fff;
     border-left-color: #60a5fa;
@@ -111,7 +127,7 @@ h1 {
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .card:hover {
@@ -155,8 +171,19 @@ h1 {
     border-radius: 50%;
 }
 
-.welcome-banner h2 { font-size: 2.5rem; margin-bottom: 10px; z-index: 1; position: relative;}
-.welcome-banner p { font-size: 1.1rem; opacity: 0.9; z-index: 1; position: relative;}
+.welcome-banner h2 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    z-index: 1;
+    position: relative;
+}
+
+.welcome-banner p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    z-index: 1;
+    position: relative;
+}
 
 /* Forms & Tables */
 .form-box {
@@ -166,7 +193,8 @@ h1 {
     box-shadow: var(--shadow);
 }
 
-input, select {
+input,
+select {
     width: 100%;
     padding: 12px 16px;
     margin-bottom: 20px;
@@ -203,7 +231,8 @@ td {
 }
 
 /* Buttons */
-button, .btn {
+button,
+.btn {
     padding: 12px 24px;
     border: none;
     border-radius: 8px;
@@ -216,17 +245,45 @@ button, .btn {
     gap: 8px;
 }
 
-.btn-success { background: var(--success); color: white; }
-.btn-success:hover { background: #059669; transform: translateY(-1px); }
+.btn-success {
+    background: var(--success);
+    color: white;
+}
 
-.btn-danger { background: var(--danger); color: white; }
-.btn-danger:hover { background: #dc2626; transform: translateY(-1px); }
+.btn-success:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
 
-.btn-warning { background: var(--warning); color: white; }
-.btn-warning:hover { background: #d97706; transform: translateY(-1px); }
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
 
-.btn-info { background: var(--info); color: white; }
-.btn-info:hover { background: #2563eb; transform: translateY(-1px); }
+.btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+    transform: translateY(-1px);
+}
+
+.btn-info {
+    background: var(--info);
+    color: white;
+}
+
+.btn-info:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
 
 /* Status Notifications */
 #status-msg {
@@ -241,8 +298,15 @@ button, .btn {
 }
 
 @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 /* Utility Header for Logo */
@@ -251,6 +315,7 @@ button, .btn {
     align-items: center;
     gap: 12px;
 }
+
 .brand-icon {
     width: 35px;
     height: 35px;

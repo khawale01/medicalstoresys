@@ -1,18 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales - MedStore</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <div class="app-container">
         <div id="sidebar-container"></div>
         <main>
             <h1>Sales History</h1>
             <table>
-                <thead><tr><th>Order ID</th><th>Date & Time</th><th>Total Amount</th><th>Status</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date & Time</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
                 <tbody id="sales-body"></tbody>
             </table>
         </main>
@@ -53,4 +62,5 @@
         document.addEventListener('DOMContentLoaded', () => { loadSidebar(); fetchSales(); });
     </script>
 </body>
+
 </html>

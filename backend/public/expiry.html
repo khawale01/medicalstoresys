@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expiry Alerts - MedStore</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <div class="app-container">
         <div id="sidebar-container"></div>
@@ -13,7 +15,14 @@
             <h1>Expiry Alerts</h1>
             <p style="margin-bottom: 20px; color: #666;">Medicines expiring within the next 30 days.</p>
             <table>
-                <thead><tr><th>Medicine</th><th>Batch No</th><th>Expiry Date</th><th>Status</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Batch No</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
                 <tbody id="expiry-body"></tbody>
             </table>
         </main>
@@ -58,4 +67,5 @@
         document.addEventListener('DOMContentLoaded', () => { loadSidebar(); fetchAlerts(); });
     </script>
 </body>
+
 </html>

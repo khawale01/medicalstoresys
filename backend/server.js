@@ -14,7 +14,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
-const staticPath = path.join(__dirname, '../frontend');
+const staticPath = path.join(__dirname, 'public');
 app.use(express.static(staticPath));
 
 // CONFIG — uses environment variables when deployed, falls back to local defaults
@@ -74,7 +74,7 @@ seedAdmin();
 
 // Root Route - Automatically go to registration
 app.get('/', (req, res) => {
-    res.redirect('/register.html');
+    res.redirect('public/login.html');
 });
 
 // AUTH ROUTES

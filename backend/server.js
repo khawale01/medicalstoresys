@@ -74,7 +74,7 @@ seedAdmin();
 
 // Root Route - Automatically go to registration
 app.get('/', (req, res) => {
-    res.redirect('public/login.html');
+    res.redirect('/login.html');
 });
 
 // AUTH ROUTES

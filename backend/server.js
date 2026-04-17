@@ -57,9 +57,17 @@ const auth = (req, res, next) => {
   });
 };
 
-// SEED ADMIN
-const seedAdmin = async () => {
+// INITIALIZE DATABASE TABLES & SEED ADMIN
+const initDB = async () => {
     try {
+        await db.query(`CREATE TABLE IF NOT EXISTS admin (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL)`);
+        await db.query(`CREATE TABLE IF NOT EXISTS medicines (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, price DECIMAL(10, 2) NOT NULL, quantity INT NOT NULL DEFAULT 0, expiry_date DATE NOT NULL, batch_no VARCHAR(100), company VARCHAR(255))`);
+        await db.query(`CREATE TABLE IF NOT EXISTS sales (id INT AUTO_INCREMENT PRIMARY KEY, total_amount DECIMAL(10, 2) NOT NULL, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        await db.query(`CREATE TABLE IF NOT EXISTS sale_items (id INT AUTO_INCREMENT PRIMARY KEY, sale_id INT NOT NULL, medicine_id INT NOT NULL, quantity INT NOT NULL, price DECIMAL(10, 2) NOT NULL)`);
+        await db.query(`CREATE TABLE IF NOT EXISTS purchases (id INT AUTO_INCREMENT PRIMARY KEY, medicine_id INT NOT NULL, quantity INT NOT NULL, purchase_price DECIMAL(10, 2) NOT NULL, supplier VARCHAR(255), purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        console.log('Database tables verified/created successfully.');
+        
+        // SEED ADMIN
         const [rows] = await db.query('SELECT * FROM admin');
         if (rows.length === 0) {
             const hashedPassword = await bcrypt.hash('admin123', 10);
@@ -67,10 +75,10 @@ const seedAdmin = async () => {
             console.log('Default admin seeded: admin@medstore.com / admin123');
         }
     } catch (err) {
-        console.error('Seeding error:', err);
+        console.error('Database initialization error:', err.message);
     }
 };
-seedAdmin();
+initDB();
 
 // Root Route - Automatically go to registration
 app.get('/', (req, res) => {

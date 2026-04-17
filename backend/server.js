@@ -23,15 +23,15 @@ const SECRET_KEY = process.env.JWT_SECRET || 'medstore_vanilla_secret_key_789';
 
 // DB CONNECTION — uses environment variables when deployed
 const db = mysql.createPool({
-  host:     process.env.DB_HOST     || 'localhost',
-  user:     process.env.DB_USER     || 'root',
-  password: process.env.DB_PASSWORD || 'root',
-  database: process.env.DB_NAME     || 'medical_store',
-  port:     process.env.DB_PORT     || 3306,
+  host:     process.env.DB_HOST     || 'gateway01.ap-southeast-1.prod.alicloud.tidbcloud.com',
+  user:     process.env.DB_USER     || '2w6dszMccKzaGYZ.root',
+  password: process.env.DB_PASSWORD || 'Dqbec1mGbqotLoxY',
+  database: process.env.DB_NAME     || 'test',
+  port:     process.env.DB_PORT     || 4000,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  ssl: process.env.DB_HOST !== 'localhost' ? { rejectUnauthorized: false } : undefined
+  ssl: { minVersion: 'TLSv1.2', rejectUnauthorized: true }
 });
 
 // TEST CONNECTION

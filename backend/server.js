@@ -116,7 +116,7 @@ app.post('/api/auth/login', async (req, res) => {
         const token = jwt.sign({ id: rows[0].id, email: rows[0].email }, SECRET_KEY, { expiresIn: '1d' });
         res.json({ token, email: rows[0].email });
     } catch (err) {
-        res.status(500).json({ message: 'Login failed' });
+        res.status(500).json({ message: 'Login failed: ' + err.message });
     }
 });
 

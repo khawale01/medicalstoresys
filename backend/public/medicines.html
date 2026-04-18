@@ -23,9 +23,21 @@
                 <form id="medicine-form">
                     <input type="hidden" id="med-id">
                     <input type="text" id="name" placeholder="Medicine Name" required>
-                    <input type="number" id="price" placeholder="Price" step="0.01" required>
-                    <input type="number" id="quantity" placeholder="Quantity" required>
-                    <input type="date" id="expiry_date" required>
+                    
+                    <div style="background: #f0fdf4; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #bbf7d0;">
+                        <label style="font-size: 13px; font-weight: bold; color: #166534;">📦 Strip / Pack Settings (Optional)</label>
+                        <div style="display: flex; gap: 10px; margin-top: 8px;">
+                            <input type="number" id="tabs_per_strip" placeholder="Tabs per Strip" min="1" value="1" style="margin:0;">
+                            <input type="number" id="price_per_strip" placeholder="Price per Strip (₹)" step="0.01" style="margin:0;">
+                        </div>
+                    </div>
+
+                    <label style="font-size: 13px;">If using Strips, enter "Number of Strips" in Quantity.</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="price" placeholder="Unit Price (₹)" step="0.01" required style="margin:0;">
+                        <input type="number" id="quantity" placeholder="Quantity" required style="margin:0;">
+                    </div>
+                    <input type="date" id="expiry_date" required style="margin-top: 15px;">
                     <input type="text" id="batch_no" placeholder="Batch No" required>
                     <input type="text" id="company" placeholder="Company Name" required>
                     <div style="display: flex; gap: 10px;">
@@ -137,6 +149,8 @@
                 name: document.getElementById('name').value,
                 price: document.getElementById('price').value,
                 quantity: document.getElementById('quantity').value,
+                tabs_per_strip: document.getElementById('tabs_per_strip').value || 1,
+                price_per_strip: document.getElementById('price_per_strip').value || 0,
                 expiry_date: document.getElementById('expiry_date').value,
                 batch_no: document.getElementById('batch_no').value,
                 company: document.getElementById('company').value
@@ -155,6 +169,8 @@
             document.getElementById('name').value = m.name;
             document.getElementById('price').value = m.price;
             document.getElementById('quantity').value = m.quantity;
+            document.getElementById('tabs_per_strip').value = m.tabs_per_strip || 1;
+            document.getElementById('price_per_strip').value = m.price_per_strip || 0;
             document.getElementById('expiry_date').value = new Date(m.expiry_date).toISOString().split('T')[0];
             document.getElementById('batch_no').value = m.batch_no;
             document.getElementById('company').value = m.company;

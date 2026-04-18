@@ -62,6 +62,10 @@ const initDB = async () => {
     try {
         await db.query(`CREATE TABLE IF NOT EXISTS admin (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL)`);
         await db.query(`CREATE TABLE IF NOT EXISTS medicines (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, price DECIMAL(10, 2) NOT NULL, quantity INT NOT NULL DEFAULT 0, expiry_date DATE NOT NULL, batch_no VARCHAR(100), company VARCHAR(255))`);
+
+        // Safely add new columns if they don't exist
+        try { await db.query(`ALTER TABLE medicines ADD COLUMN tabs_per_strip INT DEFAULT 1`); } catch (e) {}
+        try { await db.query(`ALTER TABLE medicines ADD COLUMN price_per_strip DECIMAL(10, 2) DEFAULT 0`); } catch (e) {}
         await db.query(`CREATE TABLE IF NOT EXISTS sales (id INT AUTO_INCREMENT PRIMARY KEY, total_amount DECIMAL(10, 2) NOT NULL, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
         await db.query(`CREATE TABLE IF NOT EXISTS sale_items (id INT AUTO_INCREMENT PRIMARY KEY, sale_id INT NOT NULL, medicine_id INT NOT NULL, quantity INT NOT NULL, price DECIMAL(10, 2) NOT NULL)`);
         await db.query(`CREATE TABLE IF NOT EXISTS purchases (id INT AUTO_INCREMENT PRIMARY KEY, medicine_id INT NOT NULL, quantity INT NOT NULL, purchase_price DECIMAL(10, 2) NOT NULL, supplier VARCHAR(255), purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
@@ -142,9 +146,17 @@ app.get('/api/medicines', auth, async (req, res) => {
 });
 
 app.post('/api/medicines', auth, async (req, res) => {
-    const { name, price, quantity, expiry_date, batch_no, company } = req.body;
+    let { name, price, quantity, expiry_date, batch_no, company, tabs_per_strip = 1, price_per_strip = 0 } = req.body;
     try {
-        const [reslt] = await db.query('INSERT INTO medicines (name, price, quantity, expiry_date, batch_no, company) VALUES (?,?,?,?,?,?)', [name, price, quantity, expiry_date, batch_no, company]);
+        // Correct calculations if it's a strip-based entry
+        if (tabs_per_strip > 1 && price_per_strip > 0) {
+            price = (price_per_strip / tabs_per_strip).toFixed(2);
+            quantity = quantity * tabs_per_strip; // Here quantity meant "number of strips" coming from frontend
+        } else {
+            price_per_strip = price; // Defaults if not using strips
+        }
+
+        const [reslt] = await db.query('INSERT INTO medicines (name, price, quantity, expiry_date, batch_no, company, tabs_per_strip, price_per_strip) VALUES (?,?,?,?,?,?,?,?)', [name, price, quantity, expiry_date, batch_no, company, tabs_per_strip, price_per_strip]);
         res.status(201).json({ id: reslt.insertId });
     } catch (err) {
         res.status(500).json({ message: 'Failed to add medicine: ' + err.message });
@@ -152,9 +164,16 @@ app.post('/api/medicines', auth, async (req, res) => {
 });
 
 app.put('/api/medicines/:id', auth, async (req, res) => {
-    const { name, price, quantity, expiry_date, batch_no, company } = req.body;
+    let { name, price, quantity, expiry_date, batch_no, company, tabs_per_strip = 1, price_per_strip = 0 } = req.body;
     try {
-        await db.query('UPDATE medicines SET name=?, price=?, quantity=?, expiry_date=?, batch_no=?, company=? WHERE id=?', [name, price, quantity, expiry_date, batch_no, company, req.params.id]);
+        if (tabs_per_strip > 1 && price_per_strip > 0) {
+            price = (price_per_strip / tabs_per_strip).toFixed(2);
+            // quantity is NOT multiplied here because editing assumes the direct total quantity is being fixed.
+        } else {
+            price_per_strip = price;
+        }
+
+        await db.query('UPDATE medicines SET name=?, price=?, quantity=?, expiry_date=?, batch_no=?, company=?, tabs_per_strip=?, price_per_strip=? WHERE id=?', [name, price, quantity, expiry_date, batch_no, company, tabs_per_strip, price_per_strip, req.params.id]);
         res.json({ message: 'Updated' });
     } catch (err) {
         res.status(500).json({ message: 'Failed to update: ' + err.message });
